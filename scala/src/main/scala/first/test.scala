@@ -3,6 +3,7 @@ import scala.util.Random
 import akka.actor.{ActorSystem, Actor, ActorRef, Props, ActorLogging}
 import java.util.UUID
 import java.io._
+import scala.io.Source
 
 object test {
   case class Start(val persons:List[String])
@@ -26,9 +27,19 @@ object test {
       //case persoonlijk(person) => {
          // ref ! print(goto_website(person))
         case Work(x) => {
-                  print (x + "\n")
-                  context.stop(self)
-                }
+          if (new File(x).isDirectory()) print ("")
+          else print (Source.fromFile(x)
+                      .getLines()
+                      .filter { x => x.contains("</i>") }
+                      .flatMap { _.split("<p>+") }
+                      .toList
+                      .groupBy { (word: String) => word }
+                      .mapValues(_.length)
+          )   
+          
+          context.stop(self)
+                  
+        }
     }
   }
   
@@ -56,7 +67,7 @@ object test {
    // lazy val firstnames = List("Hans","Henk","Herman","Anton","Tim","Anie","Chantal","Peter")
    
     def getFileTree(f: File): Stream[File] =
-        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree).filter(x => x.isFile())
+        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree).filter{x => x.isFile()}
                else Stream.empty)
         
     val files = getFileTree(new File(System.getProperty("user.dir")+"/mails")).map(x => x.toString())
