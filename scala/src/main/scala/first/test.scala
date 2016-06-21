@@ -56,10 +56,10 @@ object test {
    // lazy val firstnames = List("Hans","Henk","Herman","Anton","Tim","Anie","Chantal","Peter")
    
     def getFileTree(f: File): Stream[File] =
-        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree) 
+        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree).filter(x => x.isFile())
                else Stream.empty)
         
-    val files = getFileTree(new File("C:\\Users\\hadriaans.PF0A49T4\\workspace\\scala\\mails")).map(x => x.toString())
+    val files = getFileTree(new File(System.getProperty("user.dir")+"/mails")).map(x => x.toString())
 
             
 //    // val persons = List.tabulate(firstnames.length)(x => new Person(firstnames(x),rs.nextInt(100)))

@@ -1,4 +1,4 @@
-package first
+/*package first
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -46,7 +46,7 @@ object gen_2 {
   case class makeLog(entry:String)
   case object ClosingTime
   
-/*  object Customer{
+  object Customer{
     case object nieuw_bezoek extends bezoek 
   }
   
@@ -56,9 +56,9 @@ object gen_2 {
           ref ! print(goto_website(person))
       }
     }
-  }*/
+  }
 
-/*  object Reisplanner {  
+  object Reisplanner {  
   }
   
   class Reisplanner extends Actor{
@@ -72,7 +72,7 @@ object gen_2 {
       }
       //  case nieuw_bezoek => println ("Site bezocht")
     }
-  }*/
+  }
   
   class Parent(reaper: ActorRef, probe: ActorRef) extends Actor {
     def receive = {
@@ -125,3 +125,4 @@ object gen_2 {
     }
    //  persons.map { x => printf ("person " + x.Name + " age " + x.Age + "\n" ) }
   }
+*/
