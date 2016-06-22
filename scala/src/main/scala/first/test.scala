@@ -29,10 +29,14 @@ object test {
          // ref ! print(goto_website(person))
         case Work(x) => {
           try{
-                 new mailProfiler(x)
-                       
+               if (new File(x).isDirectory()) println ("folder =>"+x)
+                 else 
+               new mailProfiler(x)     
             }
-          catch{ case e : Exception => throw new Exception("conversie fout")}
+          catch{ 
+              //case e : Exception => throw new Exception("conversie fout")
+            case e : Exception => e.printStackTrace()    
+          }
           finally{
             self ! PoisonPill
           }   
@@ -47,11 +51,12 @@ object test {
     import Controller._
     def receive = {
       case Start(persons) =>
-        //reaper ! WatchMe(self)
+        reaper ! WatchMe(self)
         persons.map{x =>
           val person = context.system.actorOf(Props[Customer], Unique.toString())
             reaper ! WatchMe(person)
             person ! Work(x)
+            self ! PoisonPill
         }
       case _ => print ("Dit is een test stop")
         //person./
@@ -67,7 +72,7 @@ object test {
    // lazy val firstnames = List("Hans","Henk","Herman","Anton","Tim","Anie","Chantal","Peter")
    
     def getFileTree(f: File): Stream[File] =
-        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree).filter{x => x.isFile()}
+        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
                else Stream.empty)
         
     val files = getFileTree(new File(System.getProperty("user.dir")+"/mails")).map(x => x.toString())
@@ -86,7 +91,7 @@ object test {
     val parent = system.actorOf(Props(new Parent(controller, dummyProbe)))
     
     parent ! Start(files.toList)
-    system.awaitTermination()
+    //system.awaitTermination()
   }
 
 }
