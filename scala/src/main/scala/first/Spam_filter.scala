@@ -4,6 +4,7 @@ import akka.actor.{ActorSystem, Actor, ActorRef, Props, ActorLogging,PoisonPill,
 import java.util.UUID
 import java.io._
 import scala.io.Source
+import main.scala.first.Indexer
 
 object Spamfilter {
   case class Start(val persons:List[String])

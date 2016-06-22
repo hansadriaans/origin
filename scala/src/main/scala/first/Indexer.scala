@@ -1,8 +1,9 @@
-package first
-import akka.actor.{Actor, ActorRef, Terminated, PoisonPill}
+package main.scala.first
+
+import akka.actor.{Actor, PoisonPill}
 import scala.collection.mutable.ArrayBuffer
 import java.io._
-import scala.io.Source
+import akka.actor.actorRef2Scala
 
 object Indexer {
   // Used by others to register an Actor for watching
