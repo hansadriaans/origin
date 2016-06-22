@@ -1,22 +1,25 @@
 package first 
 import scala.util.Random
-import akka.actor.{ActorSystem, Actor, ActorRef, Props, ActorLogging,PoisonPill}
+import akka.actor.{ActorSystem, Actor, ActorRef, Props, ActorLogging,PoisonPill, Terminated}
 import java.util.UUID
 import java.io._
 import scala.io.Source
 
-object test {
+object Spamfilter {
   case class Start(val persons:List[String])
-  case class Work(val text: String)
+  case class Work(val text: String, indexer: ActorRef)
   
 
   
   sealed trait bezoek
   def Unique = UUID.randomUUID()
   
-  
   class RunController extends Controller {
     def allActors(): Unit = context.system.terminate()
+  }
+  
+  class RunIndexer extends Indexer {
+   
   }
   
   object Customer{
@@ -25,14 +28,18 @@ object test {
    
   class Customer extends Actor with ActorLogging {
      import mailProfiler._
+     import Indexer._
+     
     def receive = {
       //case persoonlijk(person) => {
          // ref ! print(goto_website(person))
-        case Work(x) => {
+        case Work(x,indexer) => {
           try{
                if (new File(x).isDirectory()) println ("folder =>"+x)
-               else 
-                  mailProfiler.saveFile(mailProfiler.profile(x))
+               else {
+                  val mail = mailProfiler.profile(x)
+                  indexer ! Index(List(mail.sender,mail.subject))
+               }
           }
           catch{ 
               //case e : Exception => throw new Exception("conversie fout")
@@ -42,26 +49,28 @@ object test {
             self ! PoisonPill
           }   
         }
-    }
-    
-   
+     }
   }
   
   //Parent actor for collecting the results and launching working actors
-  class Parent(reaper: ActorRef, probe: ActorRef) extends Actor {
+  class Parent(reaper: ActorRef, indexer: ActorRef) extends Actor {
     import Controller._
+    import Indexer._
     def receive = {
       case Start(persons) =>
         reaper ! WatchMe(self)
         persons.map{x =>
           val person = context.system.actorOf(Props[Customer], Unique.toString())
             reaper ! WatchMe(person)
-            person ! Work(x)
+            person ! Work(x,indexer)
             self ! PoisonPill
         }
-      case _ => print ("Dit is een test stop")
+    
+    //  case _ => print ("Dit is een test stop")
         //person./
     }
+
+  
   }
   
   val rs = Random
@@ -81,17 +90,15 @@ object test {
             
 //    // val persons = List.tabulate(firstnames.length)(x => new Person(firstnames(x),rs.nextInt(100)))
 //    val persons = (0 to 10).map(x => firstnames(rs.nextInt(firstnames.length)))
-    val dummyProbe = system.actorOf(Props(new Actor{
-      def receive = {
-        case _ => println("Stopped a worker")
-      }
-     }))
+
      
     val controller = system.actorOf(Props[RunController])
+    val indexer = system.actorOf(Props[RunIndexer])
     
-    val parent = system.actorOf(Props(new Parent(controller, dummyProbe)))
+    val parent = system.actorOf(Props(new Parent(controller,indexer)))
     
     parent ! Start(files.toList)
+    
     //system.awaitTermination()
   }
 

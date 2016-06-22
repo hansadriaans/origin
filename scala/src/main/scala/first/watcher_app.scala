@@ -26,7 +26,7 @@ def watch(proc: Process): Unit = {
 
   val newProc = 
     if (!events.isEmpty) {
-      test.main(args)
+      Spamfilter.main(args)
       proc.destroy()
       exec
     } else proc

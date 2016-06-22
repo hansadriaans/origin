@@ -13,23 +13,33 @@ object mailProfiler {
   
    lazy val email_pat = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9-]+.[A-Za-z]{2,3}+".r 
    //print (source)
-  def profile( source : String) :Mail = {
-     def email = Source.fromFile(source,"ISO-8859-1")
-     val sender = email_pat.findFirstMatchIn(email.getLines().filter(x => x.contains("From")).mkString).mkString
-     val subject = email.getLines().filter(x => x.contains("Subject")).mkString("").split(" ",2) 
-     val recipient = email_pat.findAllMatchIn(email.getLines().filter(x => x.contains("To")).mkString("")).toList.map(x => x.toString)
-     val count = email.getLines().flatMap{_.split("\\W")}.map(_ => 1).length
-     val topwords = email.getLines()
-                     .flatMap{_.split("\\W+")}
-                     .foldLeft(Map.empty[String,Int]){
-                             (number,word) => number + (word ->(number.getOrElse(word, 0)+1))
-                     }
-   //  println ("topwords=>"+topwords)
-    // ListMap(topwords.toSeq.sortBy(_._2):_*).head
+  def profile(source : String) :Mail = {
      
-     val body = email.getLines().mkString("\n" )
-
-     new Mail(sender,recipient,subject(subject.length-1),body,count,(ListMap(topwords.toSeq.sortWith(_._2>_._2):_*)).head)
+     try {
+       def email = Source.fromFile(source,"ISO-8859-1")
+       val sender = email_pat.findFirstMatchIn(email.getLines().filter(x => x.contains("From")).mkString).mkString
+       val subject = email.getLines().filter(x => x.contains("Subject")).mkString("").split(" ",2).toStream
+       val recipient = email_pat.findAllMatchIn(email.getLines().filter(x => x.contains("To")).mkString("")).toList.map(x => x.toString)
+       val count = email.getLines().flatMap{_.split("\\W")}.map(_ => 1).length
+       val topwords = email.getLines()
+                       .flatMap{_.split("\\W+")}
+                       .foldLeft(Map.empty[String,Int]){
+                               (number,word) => number + (word ->(number.getOrElse(word, 0)+1))
+                       }
+     //  println ("topwords=>"+topwords)
+      // ListMap(topwords.toSeq.sortBy(_._2):_*).head
+       
+       val body = email.getLines().mkString("\n" )
+    
+       new Mail(sender,recipient,subject.tail.mkString,body,count,(ListMap(topwords.toSeq.sortWith(_._2>_._2):_*)).head)
+     }
+     catch{   case e : Exception =>
+           new Mail("Fout",List("Fout"),"fout",e.getLocalizedMessage,0,("fout",0))
+       }
+     finally{
+         new Mail("Fout",List("Fout"),"fout","fout",0,("fout",0))
+       }
+       
      }
   
    def saveFile(mail : Mail): Unit = {
