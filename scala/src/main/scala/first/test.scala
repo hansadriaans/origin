@@ -32,7 +32,7 @@ object test {
           try{
                if (new File(x).isDirectory()) println ("folder =>"+x)
                else 
-                  println (mailProfiler.profile(x).toString())
+                  mailProfiler.saveFile(mailProfiler.profile(x))
           }
           catch{ 
               //case e : Exception => throw new Exception("conversie fout")
