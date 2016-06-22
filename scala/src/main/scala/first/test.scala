@@ -24,15 +24,16 @@ object test {
   }
    
   class Customer extends Actor with ActorLogging {
+     import mailProfiler._
     def receive = {
       //case persoonlijk(person) => {
          // ref ! print(goto_website(person))
         case Work(x) => {
           try{
                if (new File(x).isDirectory()) println ("folder =>"+x)
-                 else 
-               new mailProfiler(x)     
-            }
+               else 
+                  println (mailProfiler.profile(x).toString())
+          }
           catch{ 
               //case e : Exception => throw new Exception("conversie fout")
             case e : Exception => e.printStackTrace()    
