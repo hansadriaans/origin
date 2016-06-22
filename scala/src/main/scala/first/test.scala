@@ -1,6 +1,6 @@
 package first 
 import scala.util.Random
-import akka.actor.{ActorSystem, Actor, ActorRef, Props, ActorLogging}
+import akka.actor.{ActorSystem, Actor, ActorRef, Props, ActorLogging,PoisonPill}
 import java.util.UUID
 import java.io._
 import scala.io.Source
@@ -8,14 +8,15 @@ import scala.io.Source
 object test {
   case class Start(val persons:List[String])
   case class Work(val text: String)
-  val system = ActorSystem("spamfiler")
+  
+
   
   sealed trait bezoek
   def Unique = UUID.randomUUID()
   
   
   class RunController extends Controller {
-    def allActors(): Unit = context.system.shutdown()
+    def allActors(): Unit = context.system.terminate()
   }
   
   object Customer{
@@ -27,20 +28,18 @@ object test {
       //case persoonlijk(person) => {
          // ref ! print(goto_website(person))
         case Work(x) => {
-          if (new File(x).isDirectory()) print ("")
-          else print (Source.fromFile(x)
-                      .getLines()
-                      .filter { x => x.contains("</i>") }
-                      .flatMap { _.split("<p>+") }
-                      .toList
-                      .groupBy { (word: String) => word }
-                      .mapValues(_.length)
-          )   
-          
-          context.stop(self)
-                  
+          try{
+                 new mailProfiler(x)
+                       
+            }
+          catch{ case e : Exception => throw new Exception("conversie fout")}
+          finally{
+            self ! PoisonPill
+          }   
         }
     }
+    
+   
   }
   
   //Parent actor for collecting the results and launching working actors
@@ -50,7 +49,7 @@ object test {
       case Start(persons) =>
         //reaper ! WatchMe(self)
         persons.map{x =>
-          val person = system.actorOf(Props[Customer], Unique.toString())
+          val person = context.system.actorOf(Props[Customer], Unique.toString())
             reaper ! WatchMe(person)
             person ! Work(x)
         }
@@ -61,7 +60,8 @@ object test {
   
   val rs = Random
   def main(args: Array[String]): Unit = {
-  
+    val system = ActorSystem("spamfiler")
+
     import system.dispatcher
   
    // lazy val firstnames = List("Hans","Henk","Herman","Anton","Tim","Anie","Chantal","Peter")
