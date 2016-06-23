@@ -36,6 +36,7 @@ object mailProfiler {
           f+"/"+s+"/"    
         }
     
+       
         lazy val folder = System.getProperty("user.dir")+"/processed/"+(checkFolder (r.nextInt(10),r.nextInt(20)))
       
        def moved = source.renameTo(new File(folder+fileName))
