@@ -14,11 +14,10 @@ abstract class Controller extends Actor {
   // Keep track of what we're watching
   val watched = ArrayBuffer.empty[ActorRef]
 
-  // Derivations need to implement this method.  It's the
-  // hook that's called when everything's dead
+  // The hook that's called when everything's dead
   def allActors(): Unit
 
-  // Watch and check for termination
+  // Register the actors to the watch queue and check for termination
   final def receive = {
     case WatchMe(ref) =>
       context.watch(ref)

@@ -8,10 +8,9 @@ import akka.actor.actorRef2Scala
 object Indexer {
   // Used by others to register an Actor for watching
   case class Index(meta: List[String])
-  case object End
 }
 
-abstract class Indexer extends Actor {
+class Indexer extends Actor {
   import Indexer._
   
   // Keep track of what we're watching
@@ -24,7 +23,7 @@ abstract class Indexer extends Actor {
     case Index(meta) => 
       this.indexList += meta.toString()
 
-    case End => self ! PoisonPill
+    case _ => self ! PoisonPill
       //indexList append meta
   }
    override def postStop() {
