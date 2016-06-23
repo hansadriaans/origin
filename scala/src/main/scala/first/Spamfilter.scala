@@ -34,8 +34,10 @@ object Spamfilter {
                  // file is processed into a mail object
                   val mail = mailProfiler.profile(file)
                   // sender and subject are used for the index to the mailfile
+                   file.renameTo(new File(mail.fileName))
                   indexer ! Index(List(mail.clasification+" : ",mail.sender,mail.subject,mail.top.toString,mail.fileName))
-             //     file.deleteOnExit()
+                 
+      
                }
           }
           catch{ 
