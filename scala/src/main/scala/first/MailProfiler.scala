@@ -8,8 +8,13 @@ import scala.util.Random
 
 object mailProfiler {
   //mail class for saving meta tags
-   class Mail(val sender:String, val recipient: List[String], val subject: String, val body:Stream[String], val top : List[(String,Int)], val clasification : String, val moved : Boolean, val fileName: String){
-     override def toString(): String = "sender =>"+sender+ ", recipient=>"+recipient+", subject=>" + subject+", top word="+top  
+   class Mail(val sender:String, val recipient: List[String], val subject: String, val top : List[(String,Int)], val clasification : String, val moved : Boolean, val fileName: String){
+     override def toString(): String = "subject=>"+subject+ 
+                                       ";clasification =>"+clasification+
+                                       ";sender=>"+sender+ 
+                                       ";recipient=>("+recipient.mkString(",")+
+                                       ");top_words=>("+top.mkString(",")+
+                                       ");file=>"+fileName
   }
   
    // regex for finding the email adress
@@ -35,16 +40,13 @@ object mailProfiler {
           } 
           f+"/"+s+"/"    
         }
-    
-       
-        lazy val folder = System.getProperty("user.dir")+"/processed/"+(checkFolder (r.nextInt(10),r.nextInt(20)))
+       val folder = System.getProperty("user.dir")+"/processed/"+(checkFolder (r.nextInt(10),r.nextInt(20)))
       
        def moved = source.renameTo(new File(folder+fileName))
        
        try {moved}
        catch{case e : Exception => println (e)}
-     
-        
+
        def email = Source.fromFile(new File(folder+fileName),"ISO-8859-7") 
     
        //meta searches the email for the lines From, To and Subject
@@ -68,25 +70,26 @@ object mailProfiler {
                                (number,word) => number + (word ->(number.getOrElse(word, 0)+1))
                        }
        
-       //only take words length > 1
+       //only take words length > 11
        val sortword = (ListMap(topwords.toSeq.sortWith(_._2>_._2):_*)).filter(x => x._1.length()>1)
         
+       
        // create mail object
        new Mail(sender,
                  recipient,
                  subject.tail.mkString,
-                 email.getLines().toStream,
                  sortword.take(10).toList,
                  "SPAM",
                  moved,
-                 System.getProperty("user.dir")+"/processed/"+folder+fileName)
+                 folder+fileName) 
+         
        
      }
      catch{   case e : Exception =>
-           new Mail("Error",List("Error"),e.getLocalizedMessage,Stream(e.getLocalizedMessage),List.empty,"None",source.renameTo(new File(System.getProperty("user.dir")+"/failed/"+fileName)),fileName )
+           new Mail("Error",List("Error"),e.getLocalizedMessage,List.empty,"None",source.renameTo(new File(System.getProperty("user.dir")+"/failed/"+fileName)),fileName )
        }
      finally{
-         new Mail("Error",List("Error"),"Error reading files",Stream("Error"),List.empty,"None",source.renameTo(new File(System.getProperty("user.dir")+"/failed/"+fileName)),fileName)
+         new Mail("Error",List("Error"),"Error reading files",List.empty,"None",source.renameTo(new File(System.getProperty("user.dir")+"/failed/"+fileName)),fileName)
       }
          
    }

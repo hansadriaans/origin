@@ -1,4 +1,4 @@
-package first
+/*package first
 
 import java.nio.file._
 import scala.collection.JavaConversions._
@@ -32,4 +32,4 @@ def watch(proc: Process): Unit = {
 }
 
 
-}
+}*/

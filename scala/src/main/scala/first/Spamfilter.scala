@@ -3,20 +3,25 @@ import akka.actor.{ActorSystem, Actor, ActorRef, Props, ActorLogging,PoisonPill}
 import java.io._
 import scala.io.Source
 import scala.sys.process._
-import main.scala.first.Indexer
+import Indexer._
 import scala.collection.JavaConversions._
 
 object Spamfilter {
   //case class for starting the parent with a list of files 
   case class Start(val persons:List[File])
  
-  // case class for worker class with a selected file and a indexed for the result
+  // case class for worker class with a 1selected file and a indexed for the result
   case class Work(val file: File, indexer: ActorRef)
   
   // the class is used to kill the context system when all the work is done
   class RunController extends Controller {
     // when allActors are killed the context system is finally terminated
     def allActors(): Unit = context.system.terminate()
+    
+     override def postStop() {
+      println("Index completed")  
+      printMenu
+      }
   }
   
   // Worker class is 
@@ -29,15 +34,13 @@ object Spamfilter {
         case Work(file,indexer) => {
           try{
               // first check on directory, if true then print the directory and no work required
-               if (file.isDirectory()) println ("folder =>"+file)
+               if (file.isDirectory()) println("Home dir =>"+file.getAbsolutePath)
                else {
                  // file is processed into a mail object
-                  val mail = mailProfiler.profile(file)
+                 // val mail = 
                   // sender and subject are used for the index to the mailfile
-                   file.renameTo(new File(mail.fileName))
-                  indexer ! Index(List(mail.clasification+" : ",mail.sender,mail.subject,mail.top.toString,mail.fileName))
-                 
-      
+                  //file.renameTo(new File(mail.fileName))
+                  indexer ! Index(mailProfiler.profile(file))
                }
           }
           catch{ 
@@ -46,7 +49,8 @@ object Spamfilter {
           }
           finally{
             // at the end of the process sent self destruction message 
-            // this part will also trigger the controller Terminated message 
+            // this part will also trigger the controller Terminated message 1
+            
             self ! PoisonPill
           }   
         }
@@ -90,7 +94,7 @@ object Spamfilter {
   }
 
   // Indexer is self contained and runs an ActorSystem 
-  def startIndexer ={
+  def startIndexer:Unit ={
     import Indexer._
     // Creating main actor system for registering akka actors
     val system = ActorSystem("spamfiler")
@@ -98,7 +102,7 @@ object Spamfilter {
     // Function for reading filenames and directory names into a stream
     // Loops through directory and calls itself when encountering a directory appending all files into a stream of files 
     def getFileTree(f: File): Stream[File] =
-        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
+        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree).filter { x => !x.isDirectory() }
                else Stream.empty)
     
     // create the stream of all files in root directory/mails           
@@ -115,17 +119,37 @@ object Spamfilter {
     
     // Call Start method in the parent actor with the generated file stream
     parent ! Start(files.toList)
+    
+    println("Index started on "+(files.size-1)+" files")
   }
   
+  //Control menu with options
+  def printMenu = {
+    
+      println("What do you want to do?")
+      println("1) Index emails")
+      println("2) Search emails")
+      println("9) Exit")
+      getInput(scala.io.StdIn.readLine("Choose...> "))
+      //call the indexer function to execute indexing 
+      
+      def getInput(input: String):Unit = input match{
+        case "1" =>  startIndexer
+        case "2" =>  {
+           index.findWord(scala.io.StdIn.readLine("Word...> "))
+           main(Array("",""))
+        }
+        case "9" => System.exit(1)
+        case _ =>  println("unknow input");main(Array("",""))
+    }
+    
+  }
   
+  def index = new SearchIndex("index.txt");
   //main function for executing object 
   def main(args: Array[String]): Unit = {
-//    val cmd = "cmd /c echo controller"
-//    def exec = cmd run true
-//    WatcherApp.watch(exec)
     
-    //call the indexer function to execute indexing 
-    startIndexer
+    printMenu
   }
 
 }

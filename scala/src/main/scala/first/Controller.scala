@@ -25,6 +25,5 @@ abstract class Controller extends Actor {
     case Terminated(ref) =>
       watched -= ref
       if (watched.isEmpty) allActors()
-
   }
 }
