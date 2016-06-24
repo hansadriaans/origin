@@ -5,6 +5,7 @@ import scala.io.Source
 import scala.sys.process._
 import Indexer._
 import scala.collection.JavaConversions._
+import main.scala.first.SearchIndex
 
 object Spamfilter {
   //case class for starting the parent with a list of files 
@@ -130,13 +131,16 @@ object Spamfilter {
       println("1) Index emails")
       println("2) Search emails")
       println("9) Exit")
-      getInput(scala.io.StdIn.readLine("Choose...> "))
+      getInput(readLine("Choose...> "))
       //call the indexer function to execute indexing 
+      
       
       def getInput(input: String):Unit = input match{
         case "1" =>  startIndexer
         case "2" =>  {
-           index.findWord(scala.io.StdIn.readLine("Word...> "))
+           val hits = index.findWord(readLine("Word...> "),index.meta_mail).filter{ x => x.nonEmpty }
+           println ("Aantal gevonden=>"+hits.size)         
+           println (hits.map{ x => x(0)+" || "+x(1) }.mkString("\n"))
            main(Array("",""))
         }
         case "9" => System.exit(1)

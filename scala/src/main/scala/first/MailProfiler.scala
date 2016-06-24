@@ -40,14 +40,14 @@ object mailProfiler {
           } 
           f+"/"+s+"/"    
         }
-       val folder = System.getProperty("user.dir")+"/processed/"+(checkFolder (r.nextInt(10),r.nextInt(20)))
+       val folder = System.getProperty("user.dir")+"/processed/"+(checkFolder (r.nextInt(16),r.nextInt(16)))
       
        def moved = source.renameTo(new File(folder+fileName))
        
        try {moved}
        catch{case e : Exception => println (e)}
 
-       def email = Source.fromFile(new File(folder+fileName),"ISO-8859-7") 
+       def email = Source.fromFile(new File(folder+fileName),"UTF-8") 
     
        //meta searches the email for the lines From, To and Subject
        def meta = email.getLines().filter(x => x.contains("From")||x.contains("To")||x.contains("Subject"))
@@ -77,7 +77,7 @@ object mailProfiler {
        // create mail object
        new Mail(sender,
                  recipient,
-                 subject.tail.mkString,
+                 Jsoup.parse(subject.tail.mkString).text(),
                  sortword.take(10).toList,
                  "SPAM",
                  moved,
