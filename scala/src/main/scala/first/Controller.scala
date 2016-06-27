@@ -1,3 +1,6 @@
+//The controller manages the different actors 
+// To prevent premature closing
+
 package first
 
 import akka.actor.{Actor, ActorRef, Terminated}

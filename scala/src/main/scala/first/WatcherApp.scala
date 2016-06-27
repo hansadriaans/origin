@@ -1,3 +1,6 @@
+//Object to be used in creating a directory listener
+//Currently not finished 
+
 /*package first
 
 import java.nio.file._

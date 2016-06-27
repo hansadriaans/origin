@@ -1,8 +1,9 @@
 lazy val commonSettings = Seq(
-  organization := "com.example",
+  organization := "hansadriaans",
   version := "0.1.0",
-  scalaVersion := "2.10.6"
+  scalaVersion := "2.11.8"
 )
 
-mainClass in (Test, packageBin) := Some("WordCount")
+
+mainClass in (MailProfiler, first) := Some("MailProfiler")
 

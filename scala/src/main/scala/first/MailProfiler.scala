@@ -1,3 +1,5 @@
+//Mailprofiler extracts meta tags from mail files 
+
 package first
 import java.io._
 import scala.io.Source
@@ -5,12 +7,11 @@ import scala.collection.immutable.ListMap
 import org.jsoup.Jsoup
 import scala.util.Random
 
-
 object mailProfiler {
   //mail class for saving meta tags
    class Mail(val sender:String, val recipient: List[String], val subject: String, val top : List[(String,Int)], val clasification : String, val moved : Boolean, val fileName: String){
      override def toString(): String = "subject=>"+subject+ 
-                                       ";clasification =>"+clasification+
+                                       ";clasification=>"+clasification+
                                        ";sender=>"+sender+ 
                                        ";recipient=>("+recipient.mkString(",")+
                                        ");top_words=>("+top.mkString(",")+
@@ -27,6 +28,8 @@ object mailProfiler {
      val r = Random
      try {
        
+       //Function for creating the desired folder
+       //Function needs a re-model
        def checkFolder(f:Int,s:Int):String ={
           if (!new File(System.getProperty("user.dir")+"/processed/"+f+"/"+s).exists())
           {
@@ -40,12 +43,13 @@ object mailProfiler {
           } 
           f+"/"+s+"/"    
         }
+       // the folder to copy the mail to is creating using an 16 x 16 directory
+       // This structure is used to prevent problems with the OS on indexing a directory with a lot of small files
        val folder = System.getProperty("user.dir")+"/processed/"+(checkFolder (r.nextInt(16),r.nextInt(16)))
       
-       def moved = source.renameTo(new File(folder+fileName))
-       
-       try {moved}
-       catch{case e : Exception => println (e)}
+       //move the file from mails directory to the new processed directory,
+       //this value is used to check if the file is moved correctly and more usefull when the indexing failed
+       val moved = source.renameTo(new File(folder+fileName))
 
        def email = Source.fromFile(new File(folder+fileName),"UTF-8") 
     
@@ -74,22 +78,24 @@ object mailProfiler {
        val sortword = (ListMap(topwords.toSeq.sortWith(_._2>_._2):_*)).filter(x => x._1.length()>1)
         
        
-       // create mail object
+       // create mail object which is used to save the meta tags for this mail
        new Mail(sender,
                  recipient,
                  Jsoup.parse(subject.tail.mkString).text(),
                  sortword.take(10).toList,
-                 "SPAM",
+                 if (r.nextInt(2)> 0) "SPAM" else "HAM",
                  moved,
                  folder+fileName) 
          
        
      }
      catch{   case e : Exception =>
+           // When something goes wrong with the indexing of the mail the file wil be move to the failed directory
            new Mail("Error",List("Error"),e.getLocalizedMessage,List.empty,"None",source.renameTo(new File(System.getProperty("user.dir")+"/failed/"+fileName)),fileName )
        }
      finally{
-         new Mail("Error",List("Error"),"Error reading files",List.empty,"None",source.renameTo(new File(System.getProperty("user.dir")+"/failed/"+fileName)),fileName)
+           //
+         new Mail("Error",List("Error"),"Error moving file",List.empty,"None",false,fileName)
       }
          
    }
